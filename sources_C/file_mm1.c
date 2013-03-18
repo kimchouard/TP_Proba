@@ -203,6 +203,73 @@ evolution evol_client(file_attente file, FILE *f)
 	return evo;
 }
 
+
+//------------------------------------------------------------
+//					Temps passé dans le système
+//------------------------------------------------------------
+
+//Structure permettant de stocker les temps d'attente des clients
+struct attente
+{
+	double *temps;
+	double moyenne;
+	unsigned int nombre;
+};
+typedef struct attente attente;
+
+attente temps_attente(file_attente file, FILE *f)
+{
+	//Initialisation pour les temps d'attente
+	attente att;
+  	att.temps = (double*) calloc (ARRAY_MAX_SIZE, sizeof(double));
+  	att.moyenne = 0;
+  	att.nombre = 0;
+
+	//En-tete pour le fichier
+	fprintf(f, "Temps d'attente des clients\n");
+	int max = (file.nb_arr < file.nb_dep) ? file.nb_dep : file.nb_arr;
+	
+	//Parcours des 2 tableau simultanément
+	int i;
+
+	//Tant que l'on est pas arrivé à la fin des 2 tableaux
+  	for ( i = 0 ; i < max ; i++ )
+  	{
+		//Ajout de l'heure d'arrivée
+		att.temps[i] = file.arr[i];
+
+		//Calcul du temps total
+
+		//0 si le client n'est pas partit
+		if (i > file.nb_dep)
+		{
+			att.temps[i] = 0;
+		}
+		//Si il est partit
+		else
+		{
+			att.temps[i] = file.dep[i] - att.temps[i];
+
+			//On ajoute le temps à la moyenne, et on incrément le nombre de gens partis
+			att.moyenne += att.temps[i];
+			att.nombre++;
+		}
+
+		//Log du temps total dans le fichier
+		fprintf(f, "%i %f\n", i, att.temps[i]);
+	}
+
+	fprintf(f, "\n\n");
+
+	//Calcul de la moyenne
+	att.moyenne = att.moyenne / att.nombre;
+	fprintf(f, "Moyenne du temps d'attente : %f\n", att.moyenne);
+
+	fprintf(f, "\n\n");
+	
+	return att;
+}
+
 int main(int argc, char* argv[])
 {
 
@@ -236,17 +303,19 @@ int main(int argc, char* argv[])
 	if (argc > 4) mu = atof(argv[4]);
 
 	//Création du fichier
-	FILE *file = fopen(urlFile, "w+");
+	FILE *fichier = fopen(urlFile, "w+");
 	
-	if (file != NULL)
+	if (fichier != NULL)
 	{
-		file_attente file_test = FileMM1(lambda, mu, temps, file);
+		file_attente file_test = FileMM1(lambda, mu, temps, fichier);
 		
-		evolution evol_text = evol_client(file_test, file);
-		
-		printf("Nombre de gens arrivés : %i;\nNombre de gens partis : %i;\n", file_test.nb_arr, file_test.nb_dep);
+		evol_client(file_test, fichier);
 
-		fclose(file);
+		attente att = temps_attente(file_test, fichier);
+		
+		printf("Nombre de gens arrivés : %i;\nNombre de gens partis : %i;\nMoyenne de temps passé : %f\n", file_test.nb_arr, file_test.nb_dep, att.moyenne);
+
+		fclose(fichier);
 	}
 	else
 	{
