@@ -1,8 +1,6 @@
 OBJ = mt19937p.o Rijndael.o 
-#expo: main.c $(OBJ)
-#	gcc -Wall -std=c99 -pedantic -o B3146 main.c $(OBJ) -lm
-expo: file_mm1.c $(OBJ)
-	gcc -Wall -std=c99 -pedantic -o B3146 file_mm1.c $(OBJ) -lm
+expo: main.c $(OBJ)
+	gcc -Wall -std=c99 -pedantic -o B3146 main.c $(OBJ) -lm
 
 # Ces 2 lignes définissent la méthode de création d'un .o
 .SUFFIXES: .o
