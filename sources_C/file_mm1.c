@@ -13,7 +13,7 @@
 
 double Alea()
 {
-    u32 Kx[NK]; // pour l'AES
+    /*u32 Kx[NK]; // pour l'AES
 	u32 Kex[NB*NR]; // pour l'AES
 	u32 Px[NB]; // pour l'AES 
     srand(time(NULL));   //INIT RAND     
@@ -25,7 +25,15 @@ double Alea()
 	//KeyExpansion(Kex,Kx);
 
 	// Generation d'un nombre aléatoire avec AES (sortie sur 32 bits)
-    word32 result = AES(Px, Kex);
+    word32 result = AES(Px, Kex);*/
+
+    struct mt19937p mt; // Pour Mersenne-Twister
+    srand(time(NULL));   //INIT RAND     
+    int tmp =rand();
+    // initialisation de la graine pour Mersenne-Twister    
+    sgenrand(time(NULL)+(tmp), &mt);
+    word32 result = genrand(&mt); 
+
 	return (result/(double) UINT_MAX);
 }
 
