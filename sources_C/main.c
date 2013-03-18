@@ -14,7 +14,7 @@ int rdtsc()
 
 double frequency ( word32 rand_array[], int array_size, size_t word_size )
 {
-	double frequency = 0;
+	int frequency = 0;
 	for ( int i = 0 ; i < array_size ; i++ ) 
 	{
 		word32 tmp = rand_array[i];
@@ -25,7 +25,7 @@ double frequency ( word32 rand_array[], int array_size, size_t word_size )
 		}
 	}
 
-	double sobs = abs(frequency) / sqrt(array_size*word_size);
+	double sobs = ( (double) abs((double) frequency) ) / sqrt(array_size*word_size);
 	
 	double p = erfc ( sobs / sqrt(2) );
 	
@@ -162,11 +162,11 @@ int main()
     	freq_rand_faible[j] = frequency ( array_rand_faible, NBVALEURS, 4 ); 
     		
     		
-    	printf( "Frequene monobit VNeumann: %lf\n", freq_newmann[j] );
+    	/*printf( "Frequene monobit VNeumann: %lf\n", freq_newmann[j] );
     	printf( "Frequene monobit MT: %lf\n", freq_mt[j] );
     	printf( "Frequene monobit AES: %lf\n", freq_aes[j] );
     	printf( "Frequene monobit rand fort: %lf\n", freq_rand_fort[j] );
-    	printf( "Frequene monobit rand faible: %lf\n", freq_rand_faible[j] );
+    	printf( "Frequene monobit rand faible: %lf\n", freq_rand_faible[j] );*/
     
     	//Génération des tests des runs
     	rand_newmann[j] = runs ( array_newmann, NBVALEURS, 16 ); 
@@ -175,11 +175,11 @@ int main()
     	rand_rand_fort[j] = runs ( array_rand_fort, NBVALEURS, 4 ); 
     	rand_rand_faible[j] = runs ( array_rand_faible, NBVALEURS, 4 ); 
         
-    	printf( "Test des runs VNeumann: %lf\n", rand_newmann[j] );
+    	/*printf( "Test des runs VNeumann: %lf\n", rand_newmann[j] );
     	printf( "Test des runs MT: %lf\n", rand_mt[j] );
     	printf( "Test des runs AES: %lf\n", rand_aes[j] );
     	printf( "Test des runs rand fort: %lf\n", rand_rand_fort[j] );
-    	printf( "Test des runs rand faible: %lf\n", rand_rand_faible[j] );
+    	printf( "Test des runs rand faible: %lf\n", rand_rand_faible[j] );*/
 
     	//Permet de mettre à jour la graine du random !! ;)
     	sleep(1);
