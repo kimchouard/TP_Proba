@@ -163,9 +163,10 @@ evolution evol_client(file_attente file, FILE *f)
   	for (i = 0 ; i <= max; i++)
   	{	
 		//Ajout de l'arrivée
-		dArr = file.arr[i];
-		if (dArr != 0)
+		if (dArr < file.nb_arr)
 		{
+			dArr = file.arr[i];
+
 			//Log du départ dans le fichier
 			fprintf(f, "%i: %f\n", nbClient, dArr);
 
@@ -174,9 +175,10 @@ evolution evol_client(file_attente file, FILE *f)
 		}
 
 		//Ajout du départ
-		dDep = file.dep[i];
-		if (dDep != 0)
+		if (dDep < file.nb_dep)
 		{
+			dDep = file.dep[i];
+
 			//Log du départ dans le fichier
 			fprintf(f, "%i: %f\n", nbClient, dDep);
 
