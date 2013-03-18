@@ -1,0 +1,185 @@
+
+#include <stdio.h>      /* printf, scanf, NULL */
+#include <stdlib.h>     /* calloc, exit, free */
+#include <math.h>
+#include <limits.h>
+#include "Generateurs.h" //Include contentant les générateurs aléatoires
+
+#define ARRAY_MAX_SIZE 1000
+
+//------------------------------------------------------------
+//						Aléa
+//------------------------------------------------------------
+
+double Alea()
+{
+    u32 Kx[NK]; // pour l'AES
+	u32 Kex[NB*NR]; // pour l'AES
+	u32 Px[NB]; // pour l'AES 
+
+	// Initialisation de la clé et du plaintext pour l'AES // 45 est un paramètre qui doit changer à chaque initialisation
+    init_rand(Kx, Px, NK, NB, 45);
+    // construction des sous-clés pour l'AES
+	KeyExpansion(Kex,Kx);
+
+	// Generation d'un nombre aléatoire avec AES (sortie sur 32 bits)
+    word32 result = AES(Px, Kex);
+	return (result/(double) UINT_MAX);
+}
+
+//------------------------------------------------------------
+//						Exponentielle
+//------------------------------------------------------------
+
+double Exponentielle (double lambda)
+{
+	return -((double) log(1 - Alea())/log(10))/lambda;
+}
+
+//------------------------------------------------------------
+//						FileMM1
+//------------------------------------------------------------
+
+//Structure pour stocker la file d'attente
+struct file_attente {
+	double *arr;
+	int nb_arr;
+	double *dep;
+	int nb_dep;
+};
+typedef struct file_attente file_attente;
+
+file_attente FileMM1 ( double lambda, double mu, double D) {
+	//Initialisation pour la file d'attente à renvoyer
+	file_attente res;
+  	res.arr = (double*) calloc (ARRAY_MAX_SIZE, sizeof(double));
+  	res.nb_arr = 0;
+  	res.dep = (double*) calloc (ARRAY_MAX_SIZE, sizeof(double));
+  	res.nb_dep = 0;
+
+  	//----------------------------------------------------------------
+  	//				Boucle qui fait arriver tous les clients
+
+	//Variable pour stocker le temps actuel
+	double dTempsArr = 0;
+
+  	while (dTempsArr <= D)
+  	{
+  		//On incrémente le temps d'arrivée
+  		dTempsArr += Exponentielle(lambda);
+		
+  		//On fait arriver un nouveau client
+  		res.arr[res.nb_arr++] = dTempsArr;
+  	}
+  	//On annule le dernier client arrivé car on à dépassé le temps impartit.
+  	res.nb_arr--;
+
+  	//----------------------------------------------------------------
+  	//				Boucle qui fait partir tous les clients
+
+	//Le premier client part au moment ou il arrive + le temps de traitement
+	res.dep[res.nb_dep] = res.arr[res.nb_dep] + Exponentielle(mu);
+	res.nb_dep++;
+
+	//Variable utiles
+	double t_arr_suiv;
+	double t_dep;
+	double dTempsDep = res.dep[res.nb_dep-1];
+	double Rep;
+
+  	while (dTempsDep <= D)
+  	{
+  		//Temps d'arrivée du client suivant
+  		t_arr_suiv = res.arr[res.nb_dep];
+
+  		//Temps de départ du client actuel
+  		t_dep = res.dep[res.nb_dep-1];
+
+  		//Temps de traitement du serveur
+  		Rep = Exponentielle(mu);
+
+  		//Si le client actuel n'est pas partit quand le suivant arrive
+  		if (t_dep > t_arr_suiv)
+  		{
+  			//Le temps de départ du nouveau est le temps du précédent + temps de traitement
+  			res.dep[res.nb_dep] = t_dep + Rep;
+  		}
+  		//Si le client actuel est partit
+  		else 
+  		{
+  			//Le temps de départ du nouveau est son temps d'arrivé + temps de traitement
+  			res.dep[res.nb_dep] = t_arr_suiv + Rep;
+  		}
+		
+		dTempsDep = res.dep[res.nb_dep++];
+		
+		//printf("Nouveau départ : %f, temps de rep du server: %f\n", res.dep[res.nb_dep], Rep);
+  	}
+	
+	return res;
+}
+
+//------------------------------------------------------------
+//					Evolution nombre client
+//------------------------------------------------------------
+
+//Structure permettant de stocker les évolutions
+struct evolution
+{
+	double *temps;
+	unsigned int *nombre;
+};
+typedef struct evolution evolution;
+
+evolution evol_client(file_attente file)
+{
+	//Initialisation pour l'évolution
+	evolution evo;
+  	evo.temps = (double*) calloc (ARRAY_MAX_SIZE, sizeof(double));
+  	evo.nombre = (unsigned int *) calloc (ARRAY_MAX_SIZE, sizeof(double));
+	
+	//Détermination de la taille du plus grand tableau
+	int max = (file.nb_arr < file.nb_dep) ? file.nb_dep : file.nb_arr;
+	
+	//Parcours des 2 tableau simultanément
+	int i, nbClient;
+	double dDep, dArr;
+  	for (i = 0 ; i <= max; i++)
+  	{
+		//Ajout du départ
+		dDep = file.dep[i];
+		if (dDep != 0)
+		{
+			evo.temps[i] = dDep;
+			evo.nombre[i] = ++nbClient;
+		}
+		
+		//Ajout de l'arrivée
+		dArr = file.arr[i];
+		if (dArr != 0)
+		{
+			evo.temps[i] = dArr;
+			evo.nombre[i] = --nbClient;
+		}
+	}
+	
+	return evo;
+}
+
+int main()
+{
+	//Temps d'observation
+	double temps = 10;
+
+	//Nombre moyen d'arrivée par unité de temps (minute)
+	double lambda = 1;
+
+	//Nombre moyen de traitement par minute
+	double mu = 1;
+	
+	file_attente file_test = FileMM1(lambda, mu, temps);
+	
+	evolution evol_text = evol_client(file_test);
+	
+	printf("Nombre de gens arrivés : %i;\nNombre de gens partis : %i;\n", file_test.nb_arr, file_test.nb_dep);
+}
