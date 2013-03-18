@@ -13,12 +13,12 @@ typedef unsigned char word8;
 
 
 // cette fonction permet de connaitre la taille décimale d'un nombre nécessaire pour le calcul de VON NEUMANN
-inline int Dec_size(word32 e)
+int Dec_size(word32 e)
 {
   unsigned i = 0;
   while (e != 0)
     {
-	  ++i;
+	   ++i;
       e = e/10;
     }
   return i;

@@ -16,11 +16,13 @@ double Alea()
     u32 Kx[NK]; // pour l'AES
 	u32 Kex[NB*NR]; // pour l'AES
 	u32 Px[NB]; // pour l'AES 
+    srand(time(NULL));   //INIT RAND     
+    int tmp =rand();
 
 	// Initialisation de la clé et du plaintext pour l'AES // 45 est un paramètre qui doit changer à chaque initialisation
-    init_rand(Kx, Px, NK, NB, 45);
+    init_rand(Kx, Px, NK, NB, tmp);
     // construction des sous-clés pour l'AES
-	KeyExpansion(Kex,Kx);
+	//KeyExpansion(Kex,Kx);
 
 	// Generation d'un nombre aléatoire avec AES (sortie sur 32 bits)
     word32 result = AES(Px, Kex);
@@ -49,7 +51,7 @@ struct file_attente {
 };
 typedef struct file_attente file_attente;
 
-file_attente FileMM1 ( double lambda, double mu, double D) {
+file_attente FileMM1 ( double lambda, double mu, double D, FILE *f) {
 	//Initialisation pour la file d'attente à renvoyer
 	file_attente res;
   	res.arr = (double*) calloc (ARRAY_MAX_SIZE, sizeof(double));
@@ -63,16 +65,21 @@ file_attente FileMM1 ( double lambda, double mu, double D) {
 	//Variable pour stocker le temps actuel
 	double dTempsArr = 0;
 
+	//En-tete pour le fichier
+	fprintf(f, "Arrivee\n");
+
   	while (dTempsArr <= D)
   	{
   		//On incrémente le temps d'arrivée
   		dTempsArr += Exponentielle(lambda);
 		
-  		//On fait arriver un nouveau client
+  		//On fait arriver un nouveau client (on l'écrit aussi dans un fichier)
   		res.arr[res.nb_arr++] = dTempsArr;
+  		fprintf(f, "%f, ", dTempsArr);
   	}
   	//On annule le dernier client arrivé car on à dépassé le temps impartit.
   	res.nb_arr--;
+	fprintf(f, "\n\n");
 
   	//----------------------------------------------------------------
   	//				Boucle qui fait partir tous les clients
@@ -86,6 +93,9 @@ file_attente FileMM1 ( double lambda, double mu, double D) {
 	double t_dep;
 	double dTempsDep = res.dep[res.nb_dep-1];
 	double Rep;
+
+	//En-tete pour le fichier
+	fprintf(f, "Depart\n");
 
   	while (dTempsDep <= D)
   	{
@@ -112,9 +122,11 @@ file_attente FileMM1 ( double lambda, double mu, double D) {
   		}
 		
 		dTempsDep = res.dep[res.nb_dep++];
+  		fprintf(f, "%f, ", dTempsDep);
 		
 		//printf("Nouveau départ : %f, temps de rep du server: %f\n", res.dep[res.nb_dep], Rep);
   	}
+	fprintf(f, "\n\n");
 	
 	return res;
 }
@@ -131,37 +143,49 @@ struct evolution
 };
 typedef struct evolution evolution;
 
-evolution evol_client(file_attente file)
+evolution evol_client(file_attente file, FILE *f)
 {
 	//Initialisation pour l'évolution
 	evolution evo;
   	evo.temps = (double*) calloc (ARRAY_MAX_SIZE, sizeof(double));
   	evo.nombre = (unsigned int *) calloc (ARRAY_MAX_SIZE, sizeof(double));
 	
-	//Détermination de la taille du plus grand tableau
+	//Détermination de la taille du plus grand tableau pour la limite de la boucle for
 	int max = (file.nb_arr < file.nb_dep) ? file.nb_dep : file.nb_arr;
+
+	//En-tete pour le fichier
+	fprintf(f, "Evolution des clients\n");
 	
 	//Parcours des 2 tableau simultanément
-	int i, nbClient;
+	int i;
+	int nbClient = 0;
 	double dDep, dArr;
   	for (i = 0 ; i <= max; i++)
-  	{
-		//Ajout du départ
-		dDep = file.dep[i];
-		if (dDep != 0)
-		{
-			evo.temps[i] = dDep;
-			evo.nombre[i] = ++nbClient;
-		}
-		
+  	{	
 		//Ajout de l'arrivée
 		dArr = file.arr[i];
 		if (dArr != 0)
 		{
+			//Log du départ dans le fichier
+			fprintf(f, "%i: %f\n", nbClient, dArr);
+
 			evo.temps[i] = dArr;
+			evo.nombre[i] = ++nbClient;
+		}
+
+		//Ajout du départ
+		dDep = file.dep[i];
+		if (dDep != 0)
+		{
+			//Log du départ dans le fichier
+			fprintf(f, "%i: %f\n", nbClient, dDep);
+
+			evo.temps[i] = dDep;
 			evo.nombre[i] = --nbClient;
 		}
 	}
+
+	fprintf(f, "\n\n");
 	
 	return evo;
 }
@@ -169,17 +193,30 @@ evolution evol_client(file_attente file)
 int main()
 {
 	//Temps d'observation
-	double temps = 10;
+	double temps = 3*60;
 
 	//Nombre moyen d'arrivée par unité de temps (minute)
-	double lambda = 1;
+	double lambda = 0.20;//(double) ((double) 18) / ((double) 60);
 
 	//Nombre moyen de traitement par minute
-	double mu = 1;
+	double mu = 0.33;//(double) ((double) 20) / ((double) 60);
+
+	//Fichier dans lequel écrire
+	char * urlFile = "B3XXX.txt";
+	FILE *file = fopen(urlFile, "w+");
 	
-	file_attente file_test = FileMM1(lambda, mu, temps);
-	
-	evolution evol_text = evol_client(file_test);
-	
-	printf("Nombre de gens arrivés : %i;\nNombre de gens partis : %i;\n", file_test.nb_arr, file_test.nb_dep);
+	if (file != NULL)
+	{
+		file_attente file_test = FileMM1(lambda, mu, temps, file);
+		
+		evolution evol_text = evol_client(file_test, file);
+		
+		printf("Nombre de gens arrivés : %i;\nNombre de gens partis : %i;\n", file_test.nb_arr, file_test.nb_dep);
+
+		fclose(file);
+	}
+	else
+	{
+		printf("Erreur avec le fichier %s !!", urlFile);
+	}
 }
