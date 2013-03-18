@@ -190,8 +190,16 @@ evolution evol_client(file_attente file, FILE *f)
 	return evo;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+
+//------------------------------------------------------------
+//					Partie 4
+//------------------------------------------------------------
+
+	//Fichier dans lequel écrire
+	char * urlFile;
+
 	//Temps d'observation
 	double temps = 3*60;
 
@@ -199,10 +207,22 @@ int main()
 	double lambda = 0.20;//(double) ((double) 18) / ((double) 60);
 
 	//Nombre moyen de traitement par minute
-	double mu = 0.33;//(double) ((double) 20) / ((double) 60);
+	double mu = 0.33;//(double) ((double) 20) / ((double) 60);	
 
-	//Fichier dans lequel écrire
-	char * urlFile = "B3XXX.txt";
+	//Quel fichier ?
+	if (argc > 1) urlFile = argv[1];
+	else urlFile = "B3XXX.txt";
+
+	//Quel temps ?
+	if (argc > 2) temps = atof(argv[2]);
+
+	//Quel lambda ?	
+	if (argc > 3) lambda = atof(argv[3]);
+
+	//Quel capacité de traitement ?
+	if (argc > 4) mu = atof(argv[4]);
+
+	//Création du fichier
 	FILE *file = fopen(urlFile, "w+");
 	
 	if (file != NULL)
