@@ -126,6 +126,8 @@ file_attente FileMM1 ( double lambda, double mu, double D, FILE *f) {
 		
 		//printf("Nouveau départ : %f, temps de rep du server: %f\n", res.dep[res.nb_dep], Rep);
   	}
+  	//On annule le dernier client partit, car on à dépassé le temps impartit.
+  	res.nb_dep--;
 	fprintf(f, "\n\n");
 	
 	return res;
