@@ -268,7 +268,6 @@ attente temps_attente(file_attente file, FILE *f)
 double nb_moyen_client ( double lambda, double mu )
 {
 	double alpha = lambda / mu;
-	printf("%f alpha\n", alpha);
 
 	return alpha/(1-alpha);
 }
@@ -294,7 +293,7 @@ int main(int argc, char* argv[])
 
 	//Quel fichier ?
 	if (argc > 1) urlFile = argv[1];
-	else urlFile = "B3XXX.txt";
+	else urlFile = "B3146.txt";
 
 	//Quel temps ?
 	if (argc > 2) temps = atof(argv[2]);
@@ -319,7 +318,7 @@ int main(int argc, char* argv[])
 		double moy_client = nb_moyen_client(lambda, mu);
 		fprintf(fichier, "Nombre moyen de client dans le système : %f\n", moy_client);
 
-		printf("Formule de little (doit etre le plus proche de 0) : %f\n", (moy_client - att.moyenne));
+		printf("Formule de little (doit etre le plus proche de 0) : %f\n", moy_client - lambda*att.moyenne);
 		
 		printf("Nombre de gens arrivés : %i;\nNombre de gens partis : %i;\nMoyenne de temps passé : %f\nNombre moyen de client dans le systeme : %f\n", file_test.nb_arr, file_test.nb_dep, att.moyenne, moy_client);
 

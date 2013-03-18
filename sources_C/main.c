@@ -6,12 +6,6 @@
 
 #define NBVALEURS 1024
 
-int rdtsc()
-{
-    __asm__ __volatile__("rdtsc");
-	return 0;
-}
-
 double frequency ( word32 rand_array[], int array_size, size_t word_size )
 {
 	int frequency = 0;
@@ -125,7 +119,7 @@ int main()
     	srand(time(NULL));   //INIT RAND     
         tmp =rand();
         
-	    x = rand()*8999+1000; /* a rentrer un nombre entre 1000 et 9999 pour Von Neumann*/
+	    x = tmp*8999+1000; /* un nombre entre 1000 et 9999 pour Von Neumann*/
 
         // initialisation de la graine pour Mersenne-Twister    
         sgenrand(time(NULL)+(tmp), &mt);
@@ -159,27 +153,14 @@ int main()
     	freq_mt[j] = frequency ( array_mt, NBVALEURS, 32 ); 
     	freq_aes[j] = frequency ( array_aes, NBVALEURS, 32 ); 
     	freq_rand_fort[j] = frequency ( array_rand_fort, NBVALEURS, 4 ); 
-    	freq_rand_faible[j] = frequency ( array_rand_faible, NBVALEURS, 4 ); 
-    		
-    		
-    	/*printf( "Frequene monobit VNeumann: %lf\n", freq_newmann[j] );
-    	printf( "Frequene monobit MT: %lf\n", freq_mt[j] );
-    	printf( "Frequene monobit AES: %lf\n", freq_aes[j] );
-    	printf( "Frequene monobit rand fort: %lf\n", freq_rand_fort[j] );
-    	printf( "Frequene monobit rand faible: %lf\n", freq_rand_faible[j] );*/
+    	freq_rand_faible[j] = frequency ( array_rand_faible, NBVALEURS, 4 );
     
     	//Génération des tests des runs
     	rand_newmann[j] = runs ( array_newmann, NBVALEURS, 16 ); 
     	rand_mt[j] = runs ( array_mt, NBVALEURS, 32 ); 
     	rand_aes[j] = runs ( array_aes, NBVALEURS, 32 ); 
     	rand_rand_fort[j] = runs ( array_rand_fort, NBVALEURS, 4 ); 
-    	rand_rand_faible[j] = runs ( array_rand_faible, NBVALEURS, 4 ); 
-        
-    	/*printf( "Test des runs VNeumann: %lf\n", rand_newmann[j] );
-    	printf( "Test des runs MT: %lf\n", rand_mt[j] );
-    	printf( "Test des runs AES: %lf\n", rand_aes[j] );
-    	printf( "Test des runs rand fort: %lf\n", rand_rand_fort[j] );
-    	printf( "Test des runs rand faible: %lf\n", rand_rand_faible[j] );*/
+    	rand_rand_faible[j] = runs ( array_rand_faible, NBVALEURS, 4 );
 
     	//Permet de mettre à jour la graine du random !! ;)
     	sleep(1);
@@ -212,6 +193,6 @@ int main()
 	//Fermeture du fichier
 	fclose ( f );
 	
-	
+	//Tout s'est bien passé ! :p
     return 1;
 }
