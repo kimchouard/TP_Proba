@@ -88,34 +88,15 @@ double runs ( word32 rand_array[], int array_size, size_t word_size )
 
 int main()
 {
+	//Ouverture du fichier de resultats
+	FILE* f = fopen ( "./resultats.txt", "w+" ); 
+
     word16 x=1111; /* a rentrer un nombre entre 1000 et 9999 pour Von Neumann*/
-    int i,k,l, tmp;
+    int tmp;
     struct mt19937p mt; // Pour Mersenne-Twister
-    unsigned long truc;
-    word32 output_AES; // sortie pour l'AES
-    word16 output_Vneumann; // sortie pour pour Von Neumann
-    word32 output_MT; // sortie pour Mersenne-Twister
-	word8 output_rand_faible; // sortie pour les 4 bits de poids faible de rand
-	word8 output_rand_fort;   // sortie pour les 4 bits de poids fort de rand
     u32 Kx[NK]; // pour l'AES
 	u32 Kex[NB*NR]; // pour l'AES
 	u32 Px[NB]; // pour l'AES 
-	
-	//Ouverture du fichier de resultats
-	FILE* f = fopen ( "./resultats.out", "w+" ); 
-    
-    srand(time(NULL));   //INIT RAND     
-    tmp =rand();
-     
-    // initialisation de la graine pour Mersenne-Twister    
-    sgenrand(time(NULL)+(tmp), &mt);
-     
-	// Initialisation de la clé et du plaintext pour l'AES // 45 est un paramètre qui doit changer à chaque initialisation
-	init_rand(Kx, Px, NK, NB, tmp);
-	// construction des sous-clés pour l'AES
-	KeyExpansion(Kex,Kx);
-
-	//fprintf( f, "Random = [");
 
 	word32 array_newmann [NBVALEURS]; // sortie pour l'AES ( SORITE sur 16 bits)
 	word32 array_mt [NBVALEURS]; // sortie pour pour Von Neumann ( SORITE sur 32 bits)
@@ -123,71 +104,105 @@ int main()
 	word32 array_rand_fort [NBVALEURS];	// sortie pour les 4 bits de poids faible de rand ( SORITE sur 8 bits)
 	word32 array_rand_faible [NBVALEURS]; // sortie pour les 4 bits de poids fort de rand ( SORITE sur 8 bits)
 
-	// Pour obtenir 1024 valeurs
-	for ( int i = 0 ; i < NBVALEURS ; i++ )
-	{
-		// Generation d'un nombre aléatoire avec Von Neumann (sortie sur 16 bits)
-		output_Vneumann = Von_Neumann(&x);
-		array_newmann[i] = Von_Neumann(&x);
+	//Résultats des 20 tests de frequence 
+	double freq_newmann [20];
+	double freq_mt [20];
+	double freq_aes [20]; 
+	double freq_rand_fort [20];	
+	double freq_rand_faible [20]; 
 
-		// Generation d'un nombre aléatoire avec Mersenne-Twister (sortie sur 32 bits)
-		output_MT = genrand(&mt); 
-		array_mt[i] = genrand(&mt); 
+	//Résultats des 20 tests des runs 
+	double rand_newmann [20];
+	double rand_mt [20];
+	double rand_aes [20]; 
+	double rand_rand_fort [20];	
+	double rand_rand_faible [20]; 
 
-		// Generation d'un nombre aléatoire avec AES (sortie sur 32 bits)
-		output_AES = AES(Px, Kex);
-		array_aes[i] = AES(Px, Kex);
-
-		// Generation d'un nombre aléatoire avec rand 4 bits poids fort (sortie sur 32 bits)
-		output_rand_fort = rand ( ) >> 27;
-		array_rand_fort[i] = rand ( ) >> 27;
-
-		// Generation d'un nombre aléatoire avec rand 4 bits poids faible (sortie sur 32 bits)
-		output_rand_faible =  rand ( ) & 0x0F; 
-		array_rand_faible[i] =  rand ( ) & 0x0F; 
-
-
-		//printf("SORTIES RESPECTIVES: VN: %u, MT: %u, AES: %u, RANDFORT: %u, RANDFAIBLE: %u\n", output_Vneumann, output_MT, output_AES, output_rand_fort, output_rand_faible );
-		//fprintf( f, "%u %u %u %u %u; ", output_Vneumann, output_MT, output_AES, output_rand_fort, output_rand_faible );
-	}
-	
-	//Génération des tests de fréquence monobit
-	/*double res_neumann = frequency ( array_newmann, NBVALEURS, 16 ); 
-	double res_mt = frequency ( array_mt, NBVALEURS, 32 ); 
-	double res_aes = frequency ( array_aes, NBVALEURS, 32 ); 
-	double res_rand_fort = frequency ( array_rand_fort, NBVALEURS, 4 ); 
-	double res_rand_faible = frequency ( array_rand_faible, NBVALEURS, 4 ); 
-		
-		
-	printf( "Frequene monobit VNeumann: %lf\n", res_neumann );
-	printf( "Frequene monobit MT: %lf\n", res_mt );
-	printf( "Frequene monobit AES: %lf\n", res_aes );
-	printf( "Frequene monobit rand fort: %lf\n", res_rand_fort );
-	printf( "Frequene monobit rand faible: %lf\n", res_rand_faible );*/
-	
-	//Génération des tests des runs
-	double res_neumann = runs ( array_newmann, NBVALEURS, 16 ); 
-	double res_mt = runs ( array_mt, NBVALEURS, 32 ); 
-	double res_aes = runs ( array_aes, NBVALEURS, 32 ); 
-	double res_rand_fort = runs ( array_rand_fort, NBVALEURS, 4 ); 
-	double res_rand_faible = runs ( array_rand_faible, NBVALEURS, 4 ); 
+	int j;
+	for ( j = 0 ; j < 20 ; j++)
+    {
+    	srand(time(NULL));   //INIT RAND     
+        tmp =rand();
+         
+        // initialisation de la graine pour Mersenne-Twister    
+        sgenrand(time(NULL)+(tmp), &mt);
+         
+    	// Initialisation de la clé et du plaintext pour l'AES // 45 est un paramètre qui doit changer à chaque initialisation
+    	init_rand(Kx, Px, NK, NB, tmp);
+    	// construction des sous-clés pour l'AES
+    	KeyExpansion(Kex,Kx);
     
-	printf( "Test des runs VNeumann: %lf\n", res_neumann );
-	printf( "Test des runs MT: %lf\n", res_mt );
-	printf( "Test des runs AES: %lf\n", res_aes );
-	printf( "Test des runs rand fort: %lf\n", res_rand_fort );
-	printf( "Test des runs rand faible: %lf\n", res_rand_faible );
-	
-	fprintf(f, "%lf ", res_neumann );
-	fprintf(f, "%lf ", res_mt );
-	fprintf(f, "%lf ", res_aes );
-	fprintf(f, "%lf ", res_rand_fort );
-	fprintf(f, "%lf\n", res_rand_faible );
+    	// Pour obtenir 1024 valeurs
+    	for ( int i = 0 ; i < NBVALEURS ; i++ )
+    	{
+    		// Generation d'un nombre aléatoire avec Von Neumann (sortie sur 16 bits)
+    		array_newmann[i] = Von_Neumann(&x);
+    
+    		// Generation d'un nombre aléatoire avec Mersenne-Twister (sortie sur 32 bits)
+    		array_mt[i] = genrand(&mt); 
+    
+    		// Generation d'un nombre aléatoire avec AES (sortie sur 32 bits)
+    		array_aes[i] = AES(Px, Kex);
+    
+    		// Generation d'un nombre aléatoire avec rand 4 bits poids fort (sortie sur 32 bits)
+    		array_rand_fort[i] = rand ( ) >> 27;
+    
+    		// Generation d'un nombre aléatoire avec rand 4 bits poids faible (sortie sur 32 bits)
+    		array_rand_faible[i] =  rand ( ) & 0x0F;
+    	}
+    	
+    	//Génération des tests de fréquence monobit
+    	freq_newmann[j] = frequency ( array_newmann, NBVALEURS, 16 ); 
+    	freq_mt[j] = frequency ( array_mt, NBVALEURS, 32 ); 
+    	freq_aes[j] = frequency ( array_aes, NBVALEURS, 32 ); 
+    	freq_rand_fort[j] = frequency ( array_rand_fort, NBVALEURS, 4 ); 
+    	freq_rand_faible[j] = frequency ( array_rand_faible, NBVALEURS, 4 ); 
+    		
+    		
+    	printf( "Frequene monobit VNeumann: %lf\n", freq_newmann[j] );
+    	printf( "Frequene monobit MT: %lf\n", freq_mt[j] );
+    	printf( "Frequene monobit AES: %lf\n", freq_aes[j] );
+    	printf( "Frequene monobit rand fort: %lf\n", freq_rand_fort[j] );
+    	printf( "Frequene monobit rand faible: %lf\n", freq_rand_faible[j] );
+    
+    	//Génération des tests des runs
+    	rand_newmann[j] = runs ( array_newmann, NBVALEURS, 16 ); 
+    	rand_mt[j] = runs ( array_mt, NBVALEURS, 32 ); 
+    	rand_aes[j] = runs ( array_aes, NBVALEURS, 32 ); 
+    	rand_rand_fort[j] = runs ( array_rand_fort, NBVALEURS, 4 ); 
+    	rand_rand_faible[j] = runs ( array_rand_faible, NBVALEURS, 4 ); 
+        
+    	printf( "Test des runs VNeumann: %lf\n", rand_newmann[j] );
+    	printf( "Test des runs MT: %lf\n", rand_mt[j] );
+    	printf( "Test des runs AES: %lf\n", rand_aes[j] );
+    	printf( "Test des runs rand fort: %lf\n", rand_rand_fort[j] );
+    	printf( "Test des runs rand faible: %lf\n", rand_rand_faible[j] );
+    }
+    
+    //Stockage des résultats dans le fichier
+    fprintf(f, "Resultats des tests de fréquence\n" );
+    fprintf(f, "VN, MT, AES, RANDFORT, RANDFAIBLE\n");
+    for ( j = 0 ; j < 20 ; j++ )
+    {
+    	fprintf(f, "%lf ", freq_newmann[j] );
+    	fprintf(f, "%lf ", freq_mt[j] );
+    	fprintf(f, "%lf ", freq_aes[j] );
+    	fprintf(f, "%lf ", freq_rand_fort[j] );
+    	fprintf(f, "%lf\n", freq_rand_faible[j] );
+    }
+
+    fprintf(f, "\n\nResultats des tests des runs\n" );
+    fprintf(f, "VN, MT, AES, RANDFORT, RANDFAIBLE\n");
+    for ( j = 0 ; j < 20 ; j++ )
+    {
+    	fprintf(f, "%lf ", rand_newmann[j] );
+    	fprintf(f, "%lf ", rand_mt[j] );
+    	fprintf(f, "%lf ", rand_aes[j] );
+    	fprintf(f, "%lf ", rand_rand_fort[j] );
+    	fprintf(f, "%lf\n", rand_rand_faible[j] );
+    }
+    fprintf(f, "\n\n" );
 		
-	
-	//fseek (f, -2, SEEK_END); 
-	//fprintf( f, "]");
-	
 	//Fermeture du fichier
 	fclose ( f );
 	
