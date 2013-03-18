@@ -163,7 +163,7 @@ evolution evol_client(file_attente file, FILE *f)
   	for (i = 0 ; i <= max; i++)
   	{	
 		//Ajout de l'arrivée
-		if (dArr < file.nb_arr)
+		if (i < file.nb_arr)
 		{
 			dArr = file.arr[i];
 
@@ -175,7 +175,7 @@ evolution evol_client(file_attente file, FILE *f)
 		}
 
 		//Ajout du départ
-		if (dDep < file.nb_dep)
+		if (i < file.nb_dep)
 		{
 			dDep = file.dep[i];
 
