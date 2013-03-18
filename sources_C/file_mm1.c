@@ -13,7 +13,7 @@
 
 double Alea()
 {
-    /*u32 Kx[NK]; // pour l'AES
+    u32 Kx[NK]; // pour l'AES
 	u32 Kex[NB*NR]; // pour l'AES
 	u32 Px[NB]; // pour l'AES 
     srand(time(NULL));   //INIT RAND     
@@ -25,14 +25,14 @@ double Alea()
 	//KeyExpansion(Kex,Kx);
 
 	// Generation d'un nombre aléatoire avec AES (sortie sur 32 bits)
-    word32 result = AES(Px, Kex);*/
+    word32 result = AES(Px, Kex);
 
-    struct mt19937p mt; // Pour Mersenne-Twister
+    /*struct mt19937p mt; // Pour Mersenne-Twister
     srand(time(NULL));   //INIT RAND     
     int tmp =rand();
     // initialisation de la graine pour Mersenne-Twister    
     sgenrand(time(NULL)+(tmp), &mt);
-    word32 result = genrand(&mt); 
+    word32 result = genrand(&mt); */
 
 	return (result/(double) UINT_MAX);
 }
@@ -159,41 +159,42 @@ evolution evol_client(file_attente file, FILE *f)
 	evolution evo;
   	evo.temps = (double*) calloc (ARRAY_MAX_SIZE, sizeof(double));
   	evo.nombre = (unsigned int *) calloc (ARRAY_MAX_SIZE, sizeof(double));
-	
-	//Détermination de la taille du plus grand tableau pour la limite de la boucle for
-	int max = (file.nb_arr < file.nb_dep) ? file.nb_dep : file.nb_arr;
 
 	//En-tete pour le fichier
 	fprintf(f, "Evolution des clients\n");
 	
 	//Parcours des 2 tableau simultanément
-	int i;
+	int iArr = 0;
+	int iDep = 0;
 	int nbClient = 0;
 	double dDep, dArr;
-  	for (i = 0 ; i <= max; i++)
-  	{	
-		//Ajout de l'arrivée
-		if (i < file.nb_arr)
+
+	//Tant que l'on est pas arrivé à la fin des 2 tableaux
+  	while ( (iArr < file.nb_arr) || (iDep < file.nb_dep) )
+  	{
+  		//Récupération du temps d'arrivé et de départ à l'index actuel
+		dArr = file.arr[iArr];
+		dDep = file.dep[iDep];
+
+		//Ajout d'une l'arrivée
+		if ((dArr < dDep) && (iArr < file.nb_arr))
 		{
-			dArr = file.arr[i];
+			evo.temps[iArr] = dArr;
+			evo.nombre[iArr] = ++nbClient;
+			iArr++;
 
-			//Log du départ dans le fichier
-			fprintf(f, "%i: %f\n", nbClient, dArr);
-
-			evo.temps[i] = dArr;
-			evo.nombre[i] = ++nbClient;
+			//Log de l'arrivée dans le fichier
+			fprintf(f, "%f %i\n", dArr, nbClient);
 		}
-
-		//Ajout du départ
-		if (i < file.nb_dep)
+		//Ajout du départ (si on est pas à la fin du tableau !)
+		else if (iDep < file.nb_dep)
 		{
-			dDep = file.dep[i];
+			evo.temps[iDep] = dDep;
+			evo.nombre[iDep] = --nbClient;
+			iDep++;
 
 			//Log du départ dans le fichier
-			fprintf(f, "%i: %f\n", nbClient, dDep);
-
-			evo.temps[i] = dDep;
-			evo.nombre[i] = --nbClient;
+			fprintf(f, "%f %i\n", dDep, nbClient);
 		}
 	}
 
