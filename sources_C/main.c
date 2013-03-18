@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <unistd.h>
 #include "Generateurs.h"
 
 #define NBVALEURS 1024
@@ -89,20 +90,7 @@ double runs ( word32 rand_array[], int array_size, size_t word_size )
 int main()
 {
 	//Ouverture du fichier de resultats
-	FILE* f = fopen ( "./resultats.txt", "w+" ); 
-
-    word16 x=1111; /* a rentrer un nombre entre 1000 et 9999 pour Von Neumann*/
-    int tmp;
-    struct mt19937p mt; // Pour Mersenne-Twister
-    u32 Kx[NK]; // pour l'AES
-	u32 Kex[NB*NR]; // pour l'AES
-	u32 Px[NB]; // pour l'AES 
-
-	word32 array_newmann [NBVALEURS]; // sortie pour l'AES ( SORITE sur 16 bits)
-	word32 array_mt [NBVALEURS]; // sortie pour pour Von Neumann ( SORITE sur 32 bits)
-	word32 array_aes [NBVALEURS]; // sortie pour Mersenne-Twister ( SORITE sur 32 bits) 
-	word32 array_rand_fort [NBVALEURS];	// sortie pour les 4 bits de poids faible de rand ( SORITE sur 8 bits)
-	word32 array_rand_faible [NBVALEURS]; // sortie pour les 4 bits de poids fort de rand ( SORITE sur 8 bits)
+	FILE* f = fopen ( "./resultats.txt", "w+" );
 
 	//Résultats des 20 tests de frequence 
 	double freq_newmann [20];
@@ -121,9 +109,24 @@ int main()
 	int j;
 	for ( j = 0 ; j < 20 ; j++)
     {
+	    int tmp;
+	    word16 x = 1111;
+	    struct mt19937p mt; // Pour Mersenne-Twister
+	    u32 Kx[NK]; // pour l'AES
+		u32 Kex[NB*NR]; // pour l'AES
+		u32 Px[NB]; // pour l'AES 
+
+		word32 array_newmann [NBVALEURS]; // sortie pour l'AES ( SORITE sur 16 bits)
+		word32 array_mt [NBVALEURS]; // sortie pour pour Von Neumann ( SORITE sur 32 bits)
+		word32 array_aes [NBVALEURS]; // sortie pour Mersenne-Twister ( SORITE sur 32 bits) 
+		word32 array_rand_fort [NBVALEURS];	// sortie pour les 4 bits de poids faible de rand ( SORITE sur 8 bits)
+		word32 array_rand_faible [NBVALEURS]; // sortie pour les 4 bits de poids fort de rand ( SORITE sur 8 bits)
+
     	srand(time(NULL));   //INIT RAND     
         tmp =rand();
-         
+        
+	    x = rand()*8999+1000; /* a rentrer un nombre entre 1000 et 9999 pour Von Neumann*/
+
         // initialisation de la graine pour Mersenne-Twister    
         sgenrand(time(NULL)+(tmp), &mt);
          
@@ -177,6 +180,9 @@ int main()
     	printf( "Test des runs AES: %lf\n", rand_aes[j] );
     	printf( "Test des runs rand fort: %lf\n", rand_rand_fort[j] );
     	printf( "Test des runs rand faible: %lf\n", rand_rand_faible[j] );
+
+    	//Permet de mettre à jour la graine du random !! ;)
+    	sleep(1);
     }
     
     //Stockage des résultats dans le fichier
