@@ -235,9 +235,6 @@ attente temps_attente(file_attente file, FILE *f)
 	//Tant que l'on est pas arrivé à la fin des 2 tableaux
   	for ( i = 0 ; i < max ; i++ )
   	{
-		//Ajout de l'heure d'arrivée
-		att.temps[i] = file.arr[i];
-
 		//Calcul du temps total
 
 		//0 si le client n'est pas partit
@@ -248,7 +245,7 @@ attente temps_attente(file_attente file, FILE *f)
 		//Si il est partit
 		else
 		{
-			att.temps[i] = file.dep[i] - att.temps[i];
+			att.temps[i] = file.dep[i] - file.arr[i];
 
 			//On ajoute le temps à la moyenne, et on incrément le nombre de gens partis
 			att.moyenne += att.temps[i];
@@ -268,6 +265,19 @@ attente temps_attente(file_attente file, FILE *f)
 	fprintf(f, "\n\n");
 	
 	return att;
+}
+
+
+//------------------------------------------------------------
+//					Nombre moyen de client
+//------------------------------------------------------------
+
+double nb_moyen_client ( double lambda, double mu )
+{
+	double alpha = lambda / mu;
+	printf("%f alpha\n", alpha);
+
+	return alpha/(1-alpha);
 }
 
 int main(int argc, char* argv[])
@@ -312,8 +322,13 @@ int main(int argc, char* argv[])
 		evol_client(file_test, fichier);
 
 		attente att = temps_attente(file_test, fichier);
+
+		double moy_client = nb_moyen_client(lambda, mu);
+		fprintf(fichier, "Nombre moyen de client dans le système : %f\n", moy_client);
+
+		printf("Formule de little (doit etre le plus proche de 0) : %f\n", (moy_client - att.moyenne));
 		
-		printf("Nombre de gens arrivés : %i;\nNombre de gens partis : %i;\nMoyenne de temps passé : %f\n", file_test.nb_arr, file_test.nb_dep, att.moyenne);
+		printf("Nombre de gens arrivés : %i;\nNombre de gens partis : %i;\nMoyenne de temps passé : %f\nNombre moyen de client dans le systeme : %f\n", file_test.nb_arr, file_test.nb_dep, att.moyenne, moy_client);
 
 		fclose(fichier);
 	}

@@ -102,7 +102,7 @@ int main()
 	u32 Px[NB]; // pour l'AES 
 	
 	//Ouverture du fichier de resultats
-	FILE* f = fopen ( "./resultats.out", "a+" /*"w+"*/ ); 
+	FILE* f = fopen ( "./resultats.out", "w+" ); 
     
     srand(time(NULL));   //INIT RAND     
     tmp =rand();
